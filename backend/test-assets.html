@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MaintainIQ - Asset Test</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd; white-space: pre-wrap; }
+        .form-group { margin: 10px 0; }
+        .form-group label { display: inline-block; width: 120px; }
+        .form-group input { padding: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 MaintainIQ - Asset Management Test</h1>
+        
+        <h3>📝 Create Asset</h3>
+        <div class="form-group">
+            <label>Name:</label>
+            <input type="text" id="assetName" value="Projector X-100">
+        </div>
+        <div class="form-group">
+            <label>Category:</label>
+            <input type="text" id="assetCategory" value="Electronics">
+        </div>
+        <div class="form-group">
+            <label>Location:</label>
+            <input type="text" id="assetLocation" value="Room 201">
+        </div>
+        <div class="form-group">
+            <label>Description:</label>
+            <input type="text" id="assetDescription" value="Classroom projector" style="width:300px;">
+        </div>
+        <button onclick="createAsset()">Create Asset</button>
+        
+        <hr>
+        
+        <h3>📋 Actions</h3>
+        <button onclick="listAssets()">List All Assets</button>
+        <button onclick="getPublicAsset()">Get Public Asset</button>
+        
+        <hr>
+        
+        <h3>📤 Response:</h3>
+        <pre id="output">Click a button to test...</pre>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const output = document.getElementById('output');
+
+        function showResponse(data) {
+            output.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function createAsset() {
+            const name = document.getElementById('assetName').value;
+            const category = document.getElementById('assetCategory').value;
+            const location = document.getElementById('assetLocation').value;
+            const description = document.getElementById('assetDescription').value;
+            
+            output.textContent = '⏳ Creating asset...';
+            
+            try {
+                const response = await fetch(`${API_URL}/assets`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, category, location, description })
+                });
+                const data = await response.json();
+                showResponse(data);
+            } catch (error) {
+                output.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function listAssets() {
+            output.textContent = '⏳ Loading assets...';
+            
+            try {
+                const response = await fetch(`${API_URL}/assets`);
+                const data = await response.json();
+                showResponse(data);
+            } catch (error) {
+                output.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function getPublicAsset() {
+            const code = prompt('Enter asset code (e.g., AST-XXXXX-XXXX):');
+            if (!code) return;
+            
+            output.textContent = '⏳ Loading asset...';
+            
+            try {
+                const response = await fetch(`${API_URL}/assets/public/${code}`);
+                const data = await response.json();
+                showResponse(data);
+            } catch (error) {
+                output.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

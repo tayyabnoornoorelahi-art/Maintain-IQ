@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MaintainIQ - Asset Information</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        /* ========== PUBLIC PAGE ========== */
+        .public-page {
+            min-height: 100vh;
+            background: #F0F2F5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        :root {
+            --primary: #6C63FF;
+            --dark: #1A1A2E;
+            --gray: #6B7280;
+            --white: #FFFFFF;
+            --danger: #FF6B6B;
+            --secondary: #00C9A7;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+
+        .public-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 560px;
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+            animation: fadeUp 0.6s ease;
+        }
+
+        .public-card .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .public-card .header .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+        .public-card .header .logo span {
+            color: var(--primary);
+        }
+        .public-card .header .subtitle {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .public-card .asset-info {
+            background: #FAFAFA;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .public-card .asset-info .label {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .public-card .asset-info .value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-top: 2px;
+        }
+
+        .public-card .asset-info .value.code {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .public-card .asset-info .value.status {
+            display: inline-block;
+        }
+
+        .public-card .divider {
+            border: none;
+            border-top: 1px solid #F0F0F0;
+            margin: 20px 0;
+        }
+
+        .public-card .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #F5F5F5;
+            font-size: 14px;
+        }
+
+        .public-card .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .public-card .history-item .action {
+            color: var(--dark);
+            font-weight: 500;
+        }
+        .public-card .history-item .date {
+            color: var(--gray);
+            font-size: 12px;
+        }
+
+        .public-card .report-btn {
+            width: 100%;
+            margin-top: 16px;
+            justify-content: center;
+            padding: 14px;
+            font-size: 16px;
+        }
+
+        .public-card .qr-code-display {
+            text-align: center;
+            margin: 16px 0;
+            padding: 16px;
+            background: #FAFAFA;
+            border-radius: 12px;
+        }
+
+        .public-card .qr-code-display img {
+            max-width: 120px;
+            border-radius: 8px;
+        }
+        .asset-status-large {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .status-operational { background: #D1FAE5; color: #065F46; }
+        .status-issue_reported, .status-issue-reported { background: #FEF3C7; color: #92400E; }
+        .status-under_inspection, .status-under-inspection { background: #DBEAFE; color: #1E40AF; }
+        .status-under_maintenance, .status-under-maintenance { background: #F3E8FF; color: #6D28D9; }
+        .status-out_of_service, .status-out-of-service { background: #FEE2E2; color: #991B1B; }
+        .status-retired { background: #F3F4F6; color: #6B7280; }
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 12px;
+            color: var(--white);
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: slideIn 0.4s ease;
+            min-width: 280px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast-success { background: var(--secondary); }
+        .toast-error { background: var(--danger); }
+        .toast-info { background: var(--primary); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+        .loading-state .spinner {
+            width: 40px;
+            height: 40px;
+            border-width: 4px;
+            margin: 0 auto 16px;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--danger);
+        }
+        .error-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .error-state h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .asset-status-large {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        @media (max-width: 480px) {
+            .public-card {
+                padding: 24px;
+            }
+            .public-card .asset-info .value {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================
+    PUBLIC ASSET PAGE
+    ======================================== -->
+    <div class="public-page" id="publicPage">
+
+        <div class="public-card">
+
+            <!-- HEADER -->
+            <div class="header">
+                <div class="logo">🔧 Maintain<span>IQ</span></div>
+                <div class="subtitle">Asset Information</div>
+            </div>
+
+            <!-- LOADING STATE -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading asset information...</p>
+            </div>
+
+            <!-- ERROR STATE -->
+            <div id="errorState" class="error-state" style="display:none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Asset Not Found</h3>
+                <p>The asset you're looking for doesn't exist or has been retired.</p>
+            </div>
+
+            <!-- ASSET CONTENT -->
+            <div id="assetContent" style="display:none;">
+
+                <!-- QR Code -->
+                <div class="qr-code-display">
+                    <img id="qrImage" src="" alt="QR Code" />
+                    <div style="font-size:12px; color:var(--gray); margin-top:4px;">Scan this QR to return</div>
+                </div>
+
+                <!-- Asset Info -->
+                <div class="asset-info">
+                    <div>
+                        <div class="label">Asset Name</div>
+                        <div class="value" id="assetName">-</div>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <div class="label">Asset Code</div>
+                        <div class="value code" id="assetCode">-</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div class="asset-info">
+                        <div class="label">Category</div>
+                        <div class="value" id="assetCategory" style="font-size:16px;">-</div>
+                    </div>
+                    <div class="asset-info">
+                        <div class="label">Location</div>
+                        <div class="value" id="assetLocation" style="font-size:16px;">-</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div class="asset-info">
+                        <div class="label">Status</div>
+                        <div id="assetStatus">-</div>
+                    </div>
+                    <div class="asset-info">
+                        <div class="label">Condition</div>
+                        <div class="value" id="assetCondition" style="font-size:16px;">-</div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="asset-info" id="descriptionSection" style="display:none;">
+                    <div class="label">Description</div>
+                    <div class="value" id="assetDescription" style="font-size:15px; font-weight:400;">-</div>
+                </div>
+
+                <hr class="divider" />
+
+                <!-- Service Dates -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <div class="label" style="font-size:12px; color:var(--gray);">Last Service</div>
+                        <div style="font-weight:600;" id="lastService">-</div>
+                    </div>
+                    <div>
+                        <div class="label" style="font-size:12px; color:var(--gray);">Next Service</div>
+                        <div style="font-weight:600;" id="nextService">-</div>
+                    </div>
+                </div>
+
+                <hr class="divider" />
+
+                <!-- Recent Activity -->
+                <div>
+                    <div class="label" style="font-size:12px; color:var(--gray); margin-bottom:8px;">Recent Activity</div>
+                    <div id="recentActivity">
+                        <div style="color:var(--gray); font-size:14px;">No recent activity</div>
+                    </div>
+                </div>
+
+                <hr class="divider" />
+
+                <!-- Report Issue Button -->
+                <button class="btn btn-primary report-btn" onclick="reportIssue()">
+                    <i class="fas fa-bug"></i> Report Issue
+                </button>
+
+                <!-- Back Link -->
+                <div style="text-align:center; margin-top:12px;">
+                    <a href="index.html" style="color:var(--gray); font-size:13px; text-decoration:none;">
+                        <i class="fas fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+    TOAST CONTAINER
+    ======================================== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ========================================
+    JAVASCRIPT
+    ======================================== -->
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentAsset = null;
+
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+            toast.innerHTML = `${icons[type] || 'ℹ️'} ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(40px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
+        // ============================================
+        // LOAD ASSET
+        // ============================================
+        function getAssetCode() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('code');
+        }
+
+        async function loadAsset() {
+            const code = getAssetCode();
+
+            if (!code) {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/assets/public/${code}`);
+
+                if (!response.ok) {
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('errorState').style.display = 'block';
+                    return;
+                }
+
+                const data = await response.json();
+                currentAsset = data.asset;
+                renderAsset(data);
+
+            } catch (error) {
+                console.error('Error loading asset:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                showToast('Error loading asset', 'error');
+            }
+        }
+
+        function renderAsset(data) {
+            const asset = data.asset;
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('assetContent').style.display = 'block';
+
+            // Basic Info
+            document.getElementById('assetName').textContent = asset.name || '-';
+            document.getElementById('assetCode').textContent = asset.code || '-';
+            document.getElementById('assetCategory').textContent = asset.category || '-';
+            document.getElementById('assetLocation').textContent = asset.location || '-';
+            document.getElementById('assetCondition').textContent = asset.condition || 'Good';
+
+            // Status
+            const statusEl = document.getElementById('assetStatus');
+            const status = asset.status || 'OPERATIONAL';
+            statusEl.innerHTML = `<span class="asset-status-large status-${status.toLowerCase().replace(/_/g, '-')}">${status}</span>`;
+
+            // Description
+            if (asset.description) {
+                document.getElementById('descriptionSection').style.display = 'block';
+                document.getElementById('assetDescription').textContent = asset.description;
+            }
+
+            // Service Dates
+            document.getElementById('lastService').textContent = asset.last_service ?
+                new Date(asset.last_service).toLocaleDateString() :
+                'Not scheduled';
+            document.getElementById('nextService').textContent = asset.next_service ?
+                new Date(asset.next_service).toLocaleDateString() :
+                'Not scheduled';
+
+            // QR Code - Generate from current URL
+            const qrImg = document.getElementById('qrImage');
+            fetch(`${API_URL}/qr/asset/${asset.code}`)
+                .then(res => res.json())
+                .then(qrData => {
+                    qrImg.src = qrData.qr_code;
+                })
+                .catch(() => {
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`;
+                });
+
+            // Recent Activity
+            const activityContainer = document.getElementById('recentActivity');
+            const history = data.recent_activity || [];
+            if (history.length === 0) {
+                activityContainer.innerHTML = '<div style="color:var(--gray); font-size:14px;">No recent activity</div>';
+            } else {
+                activityContainer.innerHTML = history.map(h => `
+                    <div class="history-item">
+                        <span class="action">${h.action}</span>
+                        <span class="date">${new Date(h.created_at).toLocaleDateString()}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ============================================
+        // REPORT ISSUE
+        // ============================================
+        function reportIssue() {
+            if (!currentAsset) {
+                showToast('Asset not loaded', 'error');
+                return;
+            }
+
+            // Redirect to main page with asset pre-selected
+            localStorage.setItem('reportAssetId', currentAsset.id);
+            localStorage.setItem('reportAssetName', currentAsset.name);
+            window.location.href = `index.html?action=report&asset=${currentAsset.id}`;
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        window.onload = function() {
+            // Check if user is already logged in and redirect to dashboard if needed
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+            // If logged in, show a small indicator
+            if (token && user.name) {
+                const header = document.querySelector('.header .subtitle');
+                header.textContent = `👋 ${user.name} · Viewing Asset`;
+            }
+
+            loadAsset();
+        };
+    </script>
+
+</body>
+</html>
